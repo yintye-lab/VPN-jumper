@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -38,9 +38,20 @@ export default function App() {
   const [selectedServer, setSelectedServer] = useState(SERVERS[0]!);
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [duration, setDuration] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   const handleToggle = () => {
     if (connected) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       setConnected(false);
       setDuration(0);
       return;
@@ -49,8 +60,7 @@ export default function App() {
     setTimeout(() => {
       setConnecting(false);
       setConnected(true);
-      const interval = setInterval(() => setDuration((d) => d + 1), 1000);
-      return () => clearInterval(interval);
+      intervalRef.current = setInterval(() => setDuration((d) => d + 1), 1000);
     }, 2000);
   };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Shield, Globe, ChevronDown, Settings, Power, Minus, X, Square,
   ArrowDownUp, Timer, Wifi,
@@ -32,9 +32,20 @@ export default function App() {
   const [selectedServer, setSelectedServer] = useState(SERVERS[0]!);
   const [showServers, setShowServers] = useState(false);
   const [duration, setDuration] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   const handleToggle = () => {
     if (connected) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       setConnected(false);
       setDuration(0);
       return;
@@ -43,10 +54,9 @@ export default function App() {
     setTimeout(() => {
       setConnecting(false);
       setConnected(true);
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setDuration((d) => d + 1);
       }, 1000);
-      return () => clearInterval(interval);
     }, 2000);
   };
 
